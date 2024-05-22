@@ -33,6 +33,16 @@ async function run() {
       .collection(process.env.INFO_COLLECTION);
 
 
+    // get all info Data 
+    app.get("/getInfoData", async (req,res) => {
+      try {
+        const data = await infoCollection.find({}).toArray();
+        res.send(data)
+      } catch (error) {
+        
+      }
+    })
+
     // add information data
     app.post("/addIfoData", async (req, res) => {
       try {
@@ -44,7 +54,7 @@ async function run() {
       }
     });
 
-    
+
     // get Data Home Route
     app.get("/", async (req, res) => {
       try {
