@@ -44,7 +44,7 @@ async function run() {
     })
 
     // add information data
-    app.post("/addIfoData", async (req, res) => {
+    app.get("/addIfoData", async (req, res) => {
       try {
         const data = req.body;
         const infoData = await infoCollection.insertOne({data});
