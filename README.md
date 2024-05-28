@@ -6,6 +6,11 @@ This is the backend server for the Dental Care application. It provides endpoint
 
 ## Usage
 
+---
+  /getAppoment
+  /addAppoment
+  /getInfoData
+  /addInfoData
 
 
 get info all data on mongoDb :

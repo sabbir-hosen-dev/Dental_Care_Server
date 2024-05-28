@@ -1,17 +1,18 @@
 const express = require("express");
+const fileUpload = require("express-fileupload")
 const cors = require("cors");
 const bodyParser = require("body-parser");
 require("dotenv").config();
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const PORT = 5003;
-
 const app = express();
 
 app.use(cors());
+app.use(express.static("Doctors"));
+app.use(fileUpload());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-const { MongoClient, ServerApiVersion } = require("mongodb");
 
 const uri = process.env.MONGODB_URI;
 
@@ -23,37 +24,113 @@ const client = new MongoClient(uri, {
   },
 });
 
+// Function to convert date to ISO with fixed time
+function convertToISOWithFixedTime(dateString) {
+  const localDate = new Date(dateString);
+  if (isNaN(localDate.getTime())) {
+    throw new Error("Invalid date string");
+  }
+  localDate.setUTCHours(18, 0, 0, 0);
+  const isoString = localDate.toISOString();
+  return isoString;
+}
+
 async function run() {
   try {
     await client.connect();
-    console.log("Mongodb connect");
+    console.log("Mongodb connected");
 
-    const infoCollection = client
-      .db(process.env.DB_NAME)
-      .collection(process.env.INFO_COLLECTION);
+    const Database = client.db(process.env.DB_NAME);
+    const infoCollection = Database.collection(process.env.INFO_COLLECTION);
+    const appomentCollection = Database.collection(
+      process.env.APPOMENT_COLLECTION
+    );
+    const usersCollection = Database.collection(process.env.USERS_COLLECTION);
 
-
-    // get all info Data 
-    app.get("/getInfoData", async (req,res) => {
+    //delete User
+    app.delete("/deleteUser", async (req, res) => {
       try {
-        const data = await infoCollection.find({}).toArray();
-        res.send(data)
-      } catch (error) {
-        
-      }
-    })
-
-    // add information data
-    app.get("/addIfoData", async (req, res) => {
-      try {
-        const data = req.body;
-        const infoData = await infoCollection.insertOne({data});
-        res.send(infoData);
+        const id = req.query;
+        const data = await usersCollection.deleteOne({
+          _id: new ObjectId(id.id),
+        });
+        tes.send(data);
       } catch (error) {
         console.log(error);
       }
     });
 
+    // get users
+    app.get("/getAllUsers", async (req, res) => {
+      try {
+        const users = await usersCollection.find({}).toArray();
+        res.send(users);
+      } catch (error) {
+        console.log(err);
+      }
+    });
+
+    // post users
+    app.post("/addUser", async (req, res) => {
+      try {
+        const user = req.body;
+        const existingUser = await usersCollection.findOne({
+          email: user.email,
+        });
+        if (existingUser) {
+          return res.status(400).json({ message: "User already exists" });
+        }
+        const result = await usersCollection.insertOne(user);
+        res.send(data);
+        res.status(201).json(result);
+      } catch (error) {}
+    });
+
+    // get appoment
+    app.get("/getAppoment", async (req, res) => {
+      try {
+        const dateString = req.query.date;
+        const date = convertToISOWithFixedTime(dateString);
+        const data = await appomentCollection.find({ date: date }).toArray();
+        4;
+        res.send(data);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
+    //appoment data post
+    app.post("/addAppoment", async (req, res) => {
+      try {
+        const data = req.body;
+        const postData = await appomentCollection.insertOne(data);
+        res.send(postData);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    // get all info Data
+    app.get("/getInfoData", async (req, res) => {
+      try {
+        const data = await infoCollection.find({}).toArray();
+        res.send(data);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    // add information data
+    app.get("/addInfoData", async (req, res) => {
+      try {
+        const data = req.body;
+        const infoData = await infoCollection.insertOne({ data });
+        res.send(infoData);
+      } catch (error) {
+        console.log(error);
+      }
+    });
 
     // get Data Home Route
     app.get("/", async (req, res) => {
@@ -65,10 +142,10 @@ async function run() {
     });
 
     app.listen(PORT, () => {
-      console.log(`server run at http://localhost/${PORT}`);
+      console.log(`Server running at http://localhost:${PORT}`);
     });
   } catch (err) {
-    console.error("Error connecting to MongoDB:", error);
+    console.error("Error connecting to MongoDB:", err);
     process.exit(1); // Exit the process with an error code
   }
 }
