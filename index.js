@@ -1,5 +1,5 @@
 const express = require("express");
-const fileUpload = require("express-fileupload")
+const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 require("dotenv").config();
@@ -46,7 +46,64 @@ async function run() {
       process.env.APPOMENT_COLLECTION
     );
     const usersCollection = Database.collection(process.env.USERS_COLLECTION);
+    const doctorsCollection = Database.collection(
+      process.env.DOCTORS_COLLECTION
+    );
 
+    // userRool check
+    app.get("/userRoll", async (req, res) => {
+      try {
+        const email = req.query.email;
+        const data = await doctorsCollection.find({ email: email }).toArray();
+        res.status(200).send(data)
+      } catch (error) {
+        res.status(400).send(error.message);
+      }
+    });
+
+    // delete a doctor
+    app.delete("/deleteDoctor", async (req, res) => {
+      try {
+        const email = req.query.email;
+        console.log(email);
+        const result = await doctorsCollection.deleteOne({ email: email });
+        res.status(200).send(result);
+      } catch (error) {
+        console.log(error);
+        res.status(400).send("Doctor not find database");
+      }
+    });
+
+    //get all Doctord
+    app.get("/getAllDoctors", async (req, res) => {
+      try {
+        const data = await doctorsCollection.find({}).toArray();
+        res.status(200).send(data);
+      } catch (err) {
+        res.status(400).send(err.message);
+        console.log(err);
+        res.status(400).send(err.message);
+      }
+    });
+
+    // app a doctor
+    app.post("/addadoctor", async (req, res) => {
+      const file = req.files.myFile;
+      const { name, email, speciality } = req.body;
+
+      file.mv(`${__dirname}/Doctors/${file.name}`, (err) => {
+        if (err) {
+          res.status(400).send(err.toString());
+        }
+        doctorsCollection.insertOne({
+          name,
+          email,
+          speciality,
+          img: file.name,
+        });
+        res.send({ name: file.name, send: true });
+      });
+    });
     //delete User
     app.delete("/deleteUser", async (req, res) => {
       try {
@@ -57,6 +114,7 @@ async function run() {
         tes.send(data);
       } catch (error) {
         console.log(error);
+        res.status(400).send(error.message);
       }
     });
 
@@ -67,6 +125,7 @@ async function run() {
         res.send(users);
       } catch (error) {
         console.log(err);
+        res.status(400).send(error.message);
       }
     });
 
@@ -74,25 +133,33 @@ async function run() {
     app.post("/addUser", async (req, res) => {
       try {
         const user = req.body;
+        console.log(req.body)
         const existingUser = await usersCollection.findOne({
           email: user.email,
-        });
+        }).toArray();
+
         if (existingUser) {
-          return res.status(400).json({ message: "User already exists" });
+          return res.status(200).json({ message: "User already exists" });
         }
         const result = await usersCollection.insertOne(user);
         res.send(data);
         res.status(201).json(result);
-      } catch (error) {}
+      } catch (error) {
+        res.status(400).send(error.message);
+      }
     });
 
     // get appoment
     app.get("/getAppoment", async (req, res) => {
       try {
         const dateString = req.query.date;
-        const date = convertToISOWithFixedTime(dateString);
-        const data = await appomentCollection.find({ date: date }).toArray();
-        4;
+
+        const date = new Date(dateString);
+    
+        const options = { year: "numeric", month: "long", day: "numeric" };
+        const formattedDate = date.toLocaleDateString("en-US", options);
+    
+        const data = await appomentCollection.find({ date:formattedDate}).toArray();
         res.send(data);
       } catch (error) {
         console.error(error);
@@ -108,6 +175,7 @@ async function run() {
         res.send(postData);
       } catch (error) {
         console.log(error);
+        res.status(400).send(error.message);
       }
     });
 
@@ -118,6 +186,7 @@ async function run() {
         res.send(data);
       } catch (error) {
         console.error(error);
+        res.status(400).send(error.message);
       }
     });
 
@@ -129,6 +198,7 @@ async function run() {
         res.send(infoData);
       } catch (error) {
         console.log(error);
+        res.status(400).send(error.message);
       }
     });
 
@@ -138,6 +208,7 @@ async function run() {
         res.send("Server Is Running Ok");
       } catch (err) {
         console.log(err);
+        res.status(400).send(error.message);
       }
     });
 
