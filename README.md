@@ -7,8 +7,17 @@ This is the backend server for the Dental Care application. It provides endpoint
 ## Usage
 
 ---
+  
+  /addadoctor
+  /getAllDoctors
+
+  /deleteUser
+  /getAllUser
+  /addUser
+
   /getAppoment
   /addAppoment
+
   /getInfoData
   /addInfoData
 

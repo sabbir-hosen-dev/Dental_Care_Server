@@ -24,16 +24,7 @@ const client = new MongoClient(uri, {
   },
 });
 
-// Function to convert date to ISO with fixed time
-function convertToISOWithFixedTime(dateString) {
-  const localDate = new Date(dateString);
-  if (isNaN(localDate.getTime())) {
-    throw new Error("Invalid date string");
-  }
-  localDate.setUTCHours(18, 0, 0, 0);
-  const isoString = localDate.toISOString();
-  return isoString;
-}
+
 
 async function run() {
   try {
