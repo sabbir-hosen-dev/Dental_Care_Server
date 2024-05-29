@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
-const PORT = 5003;
+const PORT = process.env.PORT || 4000;
 const app = express();
 
 app.use(cors());
@@ -204,7 +204,7 @@ async function run() {
     });
 
     app.listen(PORT, () => {
-      console.log(`Server running at http://localhost:${PORT}`);
+      console.log(`Server running at  ${PORT}`);
     });
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);
